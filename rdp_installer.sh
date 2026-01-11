@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==========================================================
-#  CyberPie ULTRA • PRO • MAX Installer 🚀
-#  100% FIXED ANSI • POSIX-SAFE • PRO OUTPUT
+#  RDP Installer 🚀
+#  SUBSCRIBE TO NotGamerPie
 # ==========================================================
 
 set -euo pipefail
@@ -154,3 +154,4 @@ printf "%b" "${G}"; typewriter "✅ Installation Completed Successfully!"; print
 printf "%b" "${Y}"; typewriter "💻 Connect via RDP → Port 3389"; printf "%b" "${N}"
 printf "%b" "${G}"; typewriter "🔥 Powered by NotGamerPie"; printf "%b" "${N}"
 divider
+
