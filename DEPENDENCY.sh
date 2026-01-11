@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
-# ==========================================
-#   DEPENDENCY INSTALLER
-# ==========================================
-
-set -e  # Stop script on error
+set -e
 
 # --- COLORS ---
 G=$'\033[32m'
@@ -14,27 +10,22 @@ echo ""
 echo "${C}➜ Updating System Lists...${N}"
 apt update -y
 
-# 1. PREPARE NODEJS (Version 22)
+# 1. PREPARE NODEJS
 echo ""
 echo "${C}➜ Adding Node.js v22 Source...${N}"
 apt install -y curl
 curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 
-# 2. INSTALL NODEJS
+# 2. INSTALL NODEJS & NPM
 echo ""
-echo "${C}➜ Running: apt install nodejs...${N}"
+echo "${C}➜ Installing Nodejs & NPM...${N}"
 apt install -y nodejs
-
-# 3. INSTALL NPM (Added per your request)
-echo ""
-echo "${C}➜ Running: apt install npm...${N}"
 apt install -y npm
 apt install -y build-essential git
 
-# 4. INSTALL MINEFLAYER
-# Note: Mineflayer must be installed via 'npm', not 'apt'
+# 3. INSTALL MINEFLAYER
 echo ""
-echo "${C}➜ Running: npm install mineflayer...${N}"
+echo "${C}➜ Installing Mineflayer...${N}"
 cd /root
 if [ ! -f "package.json" ]; then
     npm init -y
@@ -43,7 +34,4 @@ npm install mineflayer
 
 echo ""
 echo "${G}✅ All Dependencies Installed Successfully!${N}"
-echo "   - Node.js $(node -v)"
-echo "   - NPM $(npm -v)"
-echo "   - Mineflayer Installed"
-echo ""
+EOF
