@@ -90,7 +90,7 @@ WorkingDirectory=$(dirname $BOT_FILE)
 ExecStart=$NODE_PATH $BOT_FILE
 Restart=always
 RestartSec=10
-# Removed obsolete syslog lines
+# Removed obsolete syslog lines to fix warnings
 SyslogIdentifier=$SERVICE_NAME
 
 [Install]
@@ -100,17 +100,20 @@ EOF
 
 printf "%b\n" "${G}✔ Service file created at /etc/systemd/system/${SERVICE_NAME}.service${N}"
 
-# 4. ENABLE & START
+# 4. ENABLE & START (Modified to STOP first)
 echo ""
 typewriter "${W}🚀 Activating auto-restart sequences...${N}"
 
 (
+  # 🛑 Pehle service ko STOP karein (agar chal rahi ho)
+  systemctl stop $SERVICE_NAME 2>/dev/null || true
+  
   systemctl daemon-reload
   systemctl enable $SERVICE_NAME
   systemctl start $SERVICE_NAME
 ) & spinner
 
-printf "%b\n" "${G}✔ Bot Started & Auto-Restart Enabled!${N}"
+printf "%b\n" "${G}✔ Bot Restarted & Auto-Restart Enabled!${N}"
 
 # 5. FINAL STATUS
 echo ""
