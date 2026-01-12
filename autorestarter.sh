@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==========================================
-#   Auto-Restarter Installer 🚀
-#   Sets up Systemd for Node.js Bot
+#    Auto-Restarter Installer 🚀
+#    Sets up Systemd for Node.js Bot
 # ==========================================
 
 set -euo pipefail
@@ -52,7 +52,7 @@ fi
 # --- MAIN SCRIPT ---
 clear
 printf "%b\n" "${B}=========================================${N}"
-printf "%b\n" "${C}   🤖  NODE.JS BOT AUTO-RESTARTER      ${N}"
+printf "%b\n" "${C}    🤖  NODE.JS BOT AUTO-RESTARTER       ${N}"
 printf "%b\n" "${B}=========================================${N}"
 echo ""
 
@@ -90,8 +90,7 @@ WorkingDirectory=$(dirname $BOT_FILE)
 ExecStart=$NODE_PATH $BOT_FILE
 Restart=always
 RestartSec=10
-StandardOutput=syslog
-StandardError=syslog
+# Removed obsolete syslog lines
 SyslogIdentifier=$SERVICE_NAME
 
 [Install]
@@ -116,7 +115,7 @@ printf "%b\n" "${G}✔ Bot Started & Auto-Restart Enabled!${N}"
 # 5. FINAL STATUS
 echo ""
 printf "%b\n" "${B}=========================================${N}"
-typewriter "${G}   ✅ INSTALLATION COMPLETE! ${N}"
+typewriter "${G}    ✅ INSTALLATION COMPLETE! ${N}"
 printf "%b\n" "${B}=========================================${N}"
 echo ""
 echo "commands to manage your bot:"
