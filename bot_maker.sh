@@ -214,10 +214,10 @@ else
     echo "${G}✅ Dependencies found.${N}"
 fi
 
-# --- STEP 4: SUCCESS & AUTO START ---
+# --- STEP 4: SUCCESS & AUTO RESTARTER SETUP ---
 echo ""
 echo "${G}==============================================${N}"
-echo "${G}       🚀 READY TO START THE BOT      ${N}"
+echo "${G}       🚀 CONFIGURATION COMPLETE      ${N}"
 echo "${G}==============================================${N}"
 
 if [ "$MAKE_NEW" == "true" ]; then
@@ -228,20 +228,19 @@ else
 fi
 echo ""
 
-# Ask to start immediately
+# Ask to setup AutoRestarter
 while true; do
-    read -p "${Y}[?] Do you want to start the bot now? (y/n): ${N}" yn < /dev/tty
+    read -p "${Y}[?] Do you want to setup AutoRestarter bot now? (y/n): ${N}" yn < /dev/tty
     case $yn in
         [Yy]* ) 
-            echo "${C}🚀 Starting bot... (Press Ctrl+C to stop)${N}"
+            echo "${C}🚀 Launching AutoRestarter Setup...${N}"
             echo ""
-            node app.js
+            curl -fsSL https://raw.githubusercontent.com/Sagargamin/INSTALLER-REPO/refs/heads/main/autorestarter.sh | sed 's/\r$//' | bash
             break;;
         [Nn]* ) 
             echo ""
-            echo "You can start the bot later using: ${C}node app.js${N}"
-            # Added option to edit file manually if they chose 'No'
-            echo "To edit the file manually: ${C}nano app.js${N}"
+            echo "${G}✅ Setup Complete.${N}"
+            echo "You can start the bot manually using: ${C}node app.js${N}"
             exit;;
         * ) echo "Please answer yes (y) or no (n).";;
     esac
