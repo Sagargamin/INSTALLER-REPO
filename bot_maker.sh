@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==========================================
-#    🤖 AFKBOT MAKER (Auto-Retry)
+#    🤖 AFKBOT MAKER (Auto-Retry + Safe Mode)
 # ==========================================
 
 # Stop script on error
@@ -19,59 +19,65 @@ echo "${G}    ADVANCED MINECRAFT BOT MAKER 🚀     ${N}"
 echo "${C}=========================================${N}"
 echo ""
 
-# --- STEP 1: ASK FOR DETAILS (With Loop) ---
+# --- STEP 0: CHECK EXISTING FILE ---
+MAKE_NEW="true"
 
-# 1. SERVER IP
-while true; do
-    echo "${Y}[?] Enter Server IP Address:${N}"
-    read -p "👉 IP: " SERVER_IP
-    if [[ -n "$SERVER_IP" ]]; then
-        break
-    else
-        echo "${R}❌ Error: IP Address cannot be empty! Try again.${N}"
+if [ -f "app.js" ]; then
+    echo "${Y}[!] An existing bot file (app.js) was found.${N}"
+    while true; do
+        read -p "${Y}👉 Do you want to DELETE it and create a new one? (y/n): ${N}" yn < /dev/tty
+        case $yn in
+            [Yy]* ) 
+                echo "${R}🗑️  Deleting old config...${N}"
+                rm -f app.js
+                MAKE_NEW="true"
+                break;;
+            [Nn]* ) 
+                echo "${G}✅ Keeping existing configuration.${N}"
+                MAKE_NEW="false"
+                break;;
+            * ) echo "Please answer yes (y) or no (n).";;
+        esac
+    done
+fi
+
+# --- STEP 1 & 3: ASK DETAILS & GENERATE (Only if MAKE_NEW is true) ---
+
+if [ "$MAKE_NEW" == "true" ]; then
+
+    # 1. SERVER IP
+    while true; do
         echo ""
-    fi
-done
+        echo "${Y}[?] Enter Server IP Address:${N}"
+        read -p "👉 IP: " SERVER_IP < /dev/tty
+        if [[ -n "$SERVER_IP" ]]; then
+            break
+        else
+            echo "${R}❌ Error: IP Address cannot be empty! Try again.${N}"
+        fi
+    done
 
-# 2. SERVER PORT
-echo ""
-echo "${Y}[?] Enter Server Port (Default: 25565):${N}"
-read -p "👉 Port: " SERVER_PORT
-SERVER_PORT=${SERVER_PORT:-25565}
-
-# 3. BOT NAME
-while true; do
+    # 2. SERVER PORT
     echo ""
-    echo "${Y}[?] Enter Bot Name:${N}"
-    read -p "👉 Name: " BOT_NAME
-    if [[ -n "$BOT_NAME" ]]; then
-        break
-    else
-        echo "${R}❌ Error: Bot Name cannot be empty! Try again.${N}"
-    fi
-done
+    echo "${Y}[?] Enter Server Port (Default: 25565):${N}"
+    read -p "👉 Port: " SERVER_PORT < /dev/tty
+    SERVER_PORT=${SERVER_PORT:-25565}
 
-# --- STEP 2: CHECK DEPENDENCIES ---
-echo ""
-echo "${C}⚙️  Checking dependencies...${N}"
+    # 3. BOT NAME
+    while true; do
+        echo ""
+        echo "${Y}[?] Enter Bot Name:${N}"
+        read -p "👉 Name: " BOT_NAME < /dev/tty
+        if [[ -n "$BOT_NAME" ]]; then
+            break
+        else
+            echo "${R}❌ Error: Bot Name cannot be empty! Try again.${N}"
+        fi
+    done
 
-# Check if Node is installed
-if ! command -v node &> /dev/null; then
-    echo "${R}❌ Error: Node.js is not installed. Please install Node.js first.${N}"
-    exit 1
-fi
-
-if [ ! -d "node_modules" ]; then
-    echo "${Y}📦 Installing Mineflayer...${N}"
-    npm init -y > /dev/null 2>&1
-    npm install mineflayer > /dev/null 2>&1
-else
-    echo "${G}✅ Dependencies found.${N}"
-fi
-
-# --- STEP 3: GENERATE app.js ---
-echo ""
-echo "${C}📝 Writing custom bot code...${N}"
+    # --- GENERATE app.js ---
+    echo ""
+    echo "${C}📝 Writing custom bot code...${N}"
 
 cat <<JS > app.js
 const mineflayer = require("mineflayer");
@@ -171,7 +177,6 @@ function tryBreakBlock() {
   });
 
   if (!block) {
-    // console.log("[bot] no block found nearby to break");
     return;
   }
 
@@ -183,18 +188,49 @@ function tryBreakBlock() {
 createBot();
 JS
 
+    echo "${G}✅ BOT CONFIG SAVED & GENERATED! ${N}"
+
+else
+    # Only show this if we SKIPPED generation
+    echo ""
+    echo "${C}ℹ️  Skipped configuration update. Using old 'app.js'.${N}"
+fi
+
+# --- STEP 2: CHECK DEPENDENCIES (Always runs to be safe) ---
+echo ""
+echo "${C}⚙️  Checking dependencies...${N}"
+
+# Check if Node is installed
+if ! command -v node &> /dev/null; then
+    echo "${R}❌ Error: Node.js is not installed. Please install Node.js first.${N}"
+    exit 1
+fi
+
+if [ ! -d "node_modules" ]; then
+    echo "${Y}📦 Installing Mineflayer...${N}"
+    npm init -y > /dev/null 2>&1
+    npm install mineflayer > /dev/null 2>&1
+else
+    echo "${G}✅ Dependencies found.${N}"
+fi
+
 # --- STEP 4: SUCCESS & AUTO START ---
 echo ""
 echo "${G}==============================================${N}"
-echo "${G}    ✅ BOT CONFIG SAVED & GENERATED! ${N}"
+echo "${G}       🚀 READY TO START THE BOT      ${N}"
 echo "${G}==============================================${N}"
-echo "Server: $SERVER_IP : $SERVER_PORT"
-echo "Bot:    $BOT_NAME"
+
+if [ "$MAKE_NEW" == "true" ]; then
+    echo "Server: $SERVER_IP : $SERVER_PORT"
+    echo "Bot:    $BOT_NAME"
+else
+    echo "Config: Used existing 'app.js'"
+fi
 echo ""
 
-# New Feature: Ask to start immediately
+# Ask to start immediately
 while true; do
-    read -p "${Y}[?] Do you want to start the bot now? (y/n): ${N}" yn
+    read -p "${Y}[?] Do you want to start the bot now? (y/n): ${N}" yn < /dev/tty
     case $yn in
         [Yy]* ) 
             echo "${C}🚀 Starting bot... (Press Ctrl+C to stop)${N}"
@@ -204,6 +240,8 @@ while true; do
         [Nn]* ) 
             echo ""
             echo "You can start the bot later using: ${C}node app.js${N}"
+            # Added option to edit file manually if they chose 'No'
+            echo "To edit the file manually: ${C}nano app.js${N}"
             exit;;
         * ) echo "Please answer yes (y) or no (n).";;
     esac
