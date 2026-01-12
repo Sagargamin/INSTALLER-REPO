@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==========================================
 #    Auto-Restarter Installer 🚀
-#    Sets up Systemd for Node.js Bot
+#    (Safe Mode: Asks First)
 # ==========================================
 
 set -euo pipefail
@@ -13,6 +13,7 @@ R=$'\033[31m'  # Red
 C=$'\033[36m'  # Cyan
 W=$'\033[97m'  # White
 N=$'\033[0m'   # Reset
+Y=$'\033[33m'  # Yellow
 
 # --- CONFIGURATION ---
 BOT_FILE="/root/app.js"    # Your bot file path
@@ -56,29 +57,51 @@ printf "%b\n" "${C}    🤖  NODE.JS BOT AUTO-RESTARTER       ${N}"
 printf "%b\n" "${B}=========================================${N}"
 echo ""
 
-# 1. FIND NODE PATH
-typewriter "${W}🔍 Locating Node.js installation...${N}"
+# 1. CHECK DEPENDENCIES
 NODE_PATH=$(which node)
-
 if [[ -z "$NODE_PATH" ]]; then
     printf "%b\n" "${R}❌ Error: Node.js not found! Install it first.${N}"
     exit 1
 fi
-printf "%b\n" "${G}✔ Found Node at: $NODE_PATH${N}"
-sleep 0.5
 
-# 2. CHECK BOT FILE
-typewriter "${W}🔍 Checking for bot file...${N}"
 if [[ ! -f "$BOT_FILE" ]]; then
-    printf "%b\n" "${R}❌ Error: File $BOT_FILE does not exist!${N}"
+    printf "%b\n" "${R}❌ Error: Bot file $BOT_FILE not found!${N}"
     exit 1
 fi
-printf "%b\n" "${G}✔ Found Bot file at: $BOT_FILE${N}"
-sleep 0.5
 
-# 3. CREATE SERVICE FILE
-typewriter "${W}⚙️  Generating Systemd Service file...${N}"
+# 2. ASK FOR PERMISSION FIRST (Before doing anything)
+while true; do
+    echo "${Y}[?] This will STOP any old bot service and create a new one.${N}"
+    read -p "👉 Do you want to proceed? (y/n): " yn < /dev/tty
+    case $yn in
+        [Yy]* ) 
+            echo ""
+            break  # Break loop and continue to installation
+            ;;
+        [Nn]* ) 
+            echo ""
+            echo "${C}🚫 Operation cancelled. Nothing was changed.${N}"
+            exit 0
+            ;;
+        * ) echo "Please answer yes (y) or no (n).";;
+    esac
+done
+
+# 3. CLEANUP (Only runs if user said YES)
+typewriter "${R}🧹 Cleaning up old services...${N}"
 (
+  systemctl stop $SERVICE_NAME 2>/dev/null || true
+  systemctl disable $SERVICE_NAME 2>/dev/null || true
+  rm -f /etc/systemd/system/${SERVICE_NAME}.service
+  systemctl daemon-reload
+) & spinner
+
+printf "%b\n" "${G}✔ Old services stopped & deleted.${N}"
+echo ""
+
+# 4. CREATE NEW SERVICE
+typewriter "${W}⚙️  Creating new service configuration...${N}"
+
 cat <<EOF > /etc/systemd/system/${SERVICE_NAME}.service
 [Unit]
 Description=NodeJS Minecraft Bot
@@ -90,39 +113,23 @@ WorkingDirectory=$(dirname $BOT_FILE)
 ExecStart=$NODE_PATH $BOT_FILE
 Restart=always
 RestartSec=10
-# Removed obsolete syslog lines to fix warnings
 SyslogIdentifier=$SERVICE_NAME
 
 [Install]
 WantedBy=multi-user.target
 EOF
-) & spinner
 
-printf "%b\n" "${G}✔ Service file created at /etc/systemd/system/${SERVICE_NAME}.service${N}"
-
-# 4. ENABLE & START (Modified to STOP first)
-echo ""
-typewriter "${W}🚀 Activating auto-restart sequences...${N}"
-
+# 5. START SERVICE
+typewriter "${W}🚀 Starting bot service...${N}"
 (
-  # 🛑 Pehle service ko STOP karein (agar chal rahi ho)
-  systemctl stop $SERVICE_NAME 2>/dev/null || true
-  
-  systemctl daemon-reload
-  systemctl enable $SERVICE_NAME
-  systemctl start $SERVICE_NAME
+    systemctl daemon-reload
+    systemctl enable $SERVICE_NAME
+    systemctl start $SERVICE_NAME
 ) & spinner
 
-printf "%b\n" "${G}✔ Bot Restarted & Auto-Restart Enabled!${N}"
-
-# 5. FINAL STATUS
 echo ""
-printf "%b\n" "${B}=========================================${N}"
-typewriter "${G}    ✅ INSTALLATION COMPLETE! ${N}"
-printf "%b\n" "${B}=========================================${N}"
-echo ""
-echo "commands to manage your bot:"
-echo "  • Logs:   journalctl -u $SERVICE_NAME -f"
-echo "  • Stop:   systemctl stop $SERVICE_NAME"
-echo "  • Start:  systemctl start $SERVICE_NAME"
-echo ""
+printf "%b\n" "${G}✅ SUCCESS: Bot is now running with Auto-Restarter!${N}"
+echo "-----------------------------------------------"
+echo " • Check Logs:  journalctl -u $SERVICE_NAME -f"
+echo " • Stop Bot:    systemctl stop $SERVICE_NAME"
+echo "-----------------------------------------------"
