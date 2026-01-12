@@ -75,8 +75,6 @@ while true; do
         3)
             echo ""
             echo -e "${G}👋 Exiting Remover GUI...${N}"
-            # Run the main menu
-            bash <(curl -s https://raw.githubusercontent.com/Sagargamin/INSTALLER-REPO/refs/heads/main/main_menu.sh)
             exit 0
             ;;
         *)
