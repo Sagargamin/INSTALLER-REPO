@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # ==========================================
-#   🤖 AFKBOT MAKER (Auto-Retry)
+#    🤖 AFKBOT MAKER (Auto-Retry)
 # ==========================================
 
+# Stop script on error
 set -e
 
 # --- COLORS ---
@@ -14,31 +15,31 @@ N=$'\033[0m'
 
 clear
 echo "${C}=========================================${N}"
-echo "${G}    ADVANCED MINECRAFT BOT MAKER 🚀    ${N}"
+echo "${G}    ADVANCED MINECRAFT BOT MAKER 🚀     ${N}"
 echo "${C}=========================================${N}"
 echo ""
 
 # --- STEP 1: ASK FOR DETAILS (With Loop) ---
 
-# 1. SERVER IP (Loop until valid)
+# 1. SERVER IP
 while true; do
     echo "${Y}[?] Enter Server IP Address:${N}"
     read -p "👉 IP: " SERVER_IP
     if [[ -n "$SERVER_IP" ]]; then
-        break # Agar IP daali hai toh loop todo
+        break
     else
         echo "${R}❌ Error: IP Address cannot be empty! Try again.${N}"
         echo ""
     fi
 done
 
-# 2. SERVER PORT (Default 25565)
+# 2. SERVER PORT
 echo ""
 echo "${Y}[?] Enter Server Port (Default: 25565):${N}"
 read -p "👉 Port: " SERVER_PORT
 SERVER_PORT=${SERVER_PORT:-25565}
 
-# 3. BOT NAME (Loop until valid)
+# 3. BOT NAME
 while true; do
     echo ""
     echo "${Y}[?] Enter Bot Name:${N}"
@@ -53,13 +54,22 @@ done
 # --- STEP 2: CHECK DEPENDENCIES ---
 echo ""
 echo "${C}⚙️  Checking dependencies...${N}"
+
+# Check if Node is installed
+if ! command -v node &> /dev/null; then
+    echo "${R}❌ Error: Node.js is not installed. Please install Node.js first.${N}"
+    exit 1
+fi
+
 if [ ! -d "node_modules" ]; then
     echo "${Y}📦 Installing Mineflayer...${N}"
     npm init -y > /dev/null 2>&1
     npm install mineflayer > /dev/null 2>&1
+else
+    echo "${G}✅ Dependencies found.${N}"
 fi
 
-# --- STEP 3: GENERATE app.js (YOUR CUSTOM CODE) ---
+# --- STEP 3: GENERATE app.js ---
 echo ""
 echo "${C}📝 Writing custom bot code...${N}"
 
@@ -161,7 +171,7 @@ function tryBreakBlock() {
   });
 
   if (!block) {
-    console.log("[bot] no block found nearby to break");
+    // console.log("[bot] no block found nearby to break");
     return;
   }
 
@@ -173,15 +183,28 @@ function tryBreakBlock() {
 createBot();
 JS
 
-# --- STEP 4: SUCCESS ---
+# --- STEP 4: SUCCESS & AUTO START ---
 echo ""
 echo "${G}==============================================${N}"
-echo "${G}   ✅ BOT CONFIG SAVED & GENERATED! ${N}"
+echo "${G}    ✅ BOT CONFIG SAVED & GENERATED! ${N}"
 echo "${G}==============================================${N}"
 echo "Server: $SERVER_IP : $SERVER_PORT"
 echo "Bot:    $BOT_NAME"
 echo ""
-echo "Start your bot with:"
-echo "${C}node app.js${N}"
-echo ""
-EOF
+
+# New Feature: Ask to start immediately
+while true; do
+    read -p "${Y}[?] Do you want to start the bot now? (y/n): ${N}" yn
+    case $yn in
+        [Yy]* ) 
+            echo "${C}🚀 Starting bot... (Press Ctrl+C to stop)${N}"
+            echo ""
+            node app.js
+            break;;
+        [Nn]* ) 
+            echo ""
+            echo "You can start the bot later using: ${C}node app.js${N}"
+            exit;;
+        * ) echo "Please answer yes (y) or no (n).";;
+    esac
+done
