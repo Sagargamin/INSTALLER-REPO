@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # ==========================================
-#   🗑️ REMOVER GUI TOOL
+#    🗑️ REMOVER GUI TOOL
 # ==========================================
 
-set -u
+# Remove 'set -u' to prevent crashes on empty inputs
+# set -u 
 
 # --- COLORS ---
 C=$'\033[36m'  # Cyan
@@ -18,7 +19,7 @@ N=$'\033[0m'   # Reset
 header() {
     clear
     echo -e "${R}=========================================${N}"
-    echo -e "${Y}        🗑️  REMOVER GUI TOOL           ${N}"
+    echo -e "${Y}        🗑️  REMOVER GUI TOOL            ${N}"
     echo -e "${R}=========================================${N}"
     echo ""
 }
@@ -26,7 +27,8 @@ header() {
 # --- PAUSE ---
 pause() {
     echo ""
-    read -p "${W}Press [Enter] to return...${N}" dummy
+    # Added < /dev/tty to force waiting for keyboard
+    read -p "${W}Press [Enter] to return...${N}" dummy < /dev/tty
 }
 
 # --- MAIN LOOP ---
@@ -37,7 +39,9 @@ while true; do
     echo -e "${C} 3) ${G}Exit to Main Menu${N}"
     echo ""
     echo -e "${R}=========================================${N}"
-    read -p "${Y}👉 Select an option [1-3]: ${N}" choice
+    
+    # Added < /dev/tty to fix infinite loop issue
+    read -p "${Y}👉 Select an option [1-3]: ${N}" choice < /dev/tty
 
     case $choice in
         1)
@@ -54,13 +58,14 @@ while true; do
         2)
             echo ""
             echo -e "${Y}🛑 Stopping Bot Service...${N}"
-            systemctl stop mybot || echo -e "${R}⚠️ Service was not running.${N}"
-            systemctl disable mybot || true
+            # Added sudo just in case user isn't root
+            sudo systemctl stop mybot 2>/dev/null || echo -e "${R}⚠️ Service was not running.${N}"
+            sudo systemctl disable mybot 2>/dev/null || true
             
             echo -e "${Y}🗑️  Removing Service File...${N}"
             if [ -f "/etc/systemd/system/mybot.service" ]; then
-                rm -f /etc/systemd/system/mybot.service
-                systemctl daemon-reload
+                sudo rm -f /etc/systemd/system/mybot.service
+                sudo systemctl daemon-reload
                 echo -e "${G}✔ AutoRestarter removed successfully!${N}"
             else
                 echo -e "${R}❌ Service file not found!${N}"
@@ -70,7 +75,9 @@ while true; do
         3)
             echo ""
             echo -e "${G}👋 Exiting Remover GUI...${N}"
-            curl -fsSL https://raw.githubusercontent.com/Sagargamin/INSTALLER-REPO/refs/heads/main/main_menu.sh | sed 's/\r$//' | bash
+            # Run the main menu
+            bash <(curl -s https://raw.githubusercontent.com/Sagargamin/INSTALLER-REPO/refs/heads/main/main_menu.sh)
+            exit 0
             ;;
         *)
             echo ""
@@ -79,4 +86,3 @@ while true; do
             ;;
     esac
 done
-EOF
