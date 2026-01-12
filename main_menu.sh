@@ -73,7 +73,7 @@ while true; do
         4)
             echo ""
             echo -e "${Y}🚀 Bot Remover...${N}"
-            curl -fsSL https://raw.githubusercontent.com/Sagargamin/INSTALLER-REPO/refs/heads/main/autorestarter.sh | sed 's/\r$//' | bash
+            curl -fsSL https://raw.githubusercontent.com/Sagargamin/INSTALLER-REPO/refs/heads/main/bot_remover.sh | sed 's/\r$//' | bash
             pause
             ;;
         5)
